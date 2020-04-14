@@ -3,7 +3,6 @@ package com.andrelake.supplementstore.api.controller;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,13 +78,7 @@ public class PaymentController {
 	@PatchMapping("/{id}")
 	public ResponseEntity<?> partialUpdate(@PathVariable Long id, @RequestBody Map<String, Object> columns) {
 		
-		Optional<Payment> actualPayment = paymentRepository.findById(id);
-		
-		if(actualPayment.isEmpty()) {
-			return ResponseEntity.notFound().build();
-		}
-		
-		Payment updatedPayment = paymentService.save(actualPayment.get());
+		Payment updatedPayment = paymentService.findOrFail(id);
 		
 		merge(columns, updatedPayment);
 		
