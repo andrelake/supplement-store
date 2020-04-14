@@ -5,8 +5,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
-import com.andrelake.supplementstore.domain.exceptions.EntityInUseException;
-import com.andrelake.supplementstore.domain.exceptions.EntityNotFoundException;
+import com.andrelake.supplementstore.domain.exceptions.SupStoreInUseException;
 import com.andrelake.supplementstore.domain.exceptions.SupStoreNotFoundException;
 import com.andrelake.supplementstore.domain.model.SupplementStore;
 import com.andrelake.supplementstore.domain.repository.SupplementStoreRepository;
@@ -28,10 +27,10 @@ public class SupplementStoreService {
 			supplementRepository.deleteById(id);
 		}
 		catch(EmptyResultDataAccessException e) {
-			throw new EntityNotFoundException(String.format("Can't find any store with id %d", id));
+			throw new SupStoreNotFoundException(id);
 		}
 		catch(DataIntegrityViolationException e) {
-			throw new EntityInUseException(String.format("Store with id %d is being used", id));
+			throw new SupStoreInUseException(id);
 		}
 	}
 	

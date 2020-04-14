@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.andrelake.supplementstore.domain.exceptions.EntityInUseException;
 import com.andrelake.supplementstore.domain.exceptions.EntityNotFoundException;
 import com.andrelake.supplementstore.domain.model.SupplementStore;
 import com.andrelake.supplementstore.domain.repository.SupplementStoreRepository;
@@ -70,40 +70,24 @@ public class SupplementStoreController {
 	
 	@PutMapping("/{id}")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody SupplementStore supStore) {
-		
-		try {
 			
-			Optional<SupplementStore> actualSupStore = supRepository.findById(id);
+			SupplementStore actualSupStore = supService.findOrFail(id);
 			
-			if(actualSupStore.isPresent()) {
-				BeanUtils.copyProperties(supStore, actualSupStore.get(), "id");
+			BeanUtils.copyProperties(supStore, actualSupStore, "id");
 				
-				SupplementStore savedSupStore = supService.salvar(actualSupStore.get());
+			SupplementStore savedSupStore = supService.salvar(actualSupStore);
 				
-				return ResponseEntity.ok(savedSupStore);
-			}
-			return ResponseEntity.notFound().build();
-		}
-		catch(EntityNotFoundException e) {
-			
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+			return ResponseEntity.ok(savedSupStore);
 	}
 	
 	@PatchMapping("/{id}")
 	public ResponseEntity<?> partialUpdate(@PathVariable Long id, @RequestBody Map<String, Object> columns) {
 		
-		Optional<SupplementStore> actualSupStore = supRepository.findById(id);
+		SupplementStore supStore = supService.findOrFail(id);
 		
-		if(actualSupStore.isEmpty()) {
-			return ResponseEntity.notFound().build();
-		}
+		merge(columns, supStore);
 		
-		SupplementStore updatedSupStore = supService.salvar(actualSupStore.get());
-		
-		merge(columns, updatedSupStore);
-		
-		return update(id, updatedSupStore);
+		return update(id, supStore);
 	}
 	
 	private void merge(Map<String, Object> originData, SupplementStore targetSupStore) {
@@ -123,17 +107,9 @@ public class SupplementStoreController {
 	}
 	
 	@DeleteMapping("/{id}")
-	public ResponseEntity<SupplementStore> delete(@PathVariable Long id) {
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable Long id) {
 		
-		try {
-			supService.excluir(id);
-			return ResponseEntity.noContent().build();
-		}
-		catch(EntityNotFoundException e) {
-			return ResponseEntity.notFound().build();
-		}
-		catch(EntityInUseException e) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).build();
-		}
+		supService.excluir(id);
 	}
 }
