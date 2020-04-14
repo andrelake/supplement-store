@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.andrelake.supplementstore.domain.exceptions.EntityInUseException;
 import com.andrelake.supplementstore.domain.exceptions.EntityNotFoundException;
+import com.andrelake.supplementstore.domain.exceptions.SupStoreNotFoundException;
 import com.andrelake.supplementstore.domain.model.SupplementStore;
 import com.andrelake.supplementstore.domain.repository.SupplementStoreRepository;
 
@@ -32,5 +33,11 @@ public class SupplementStoreService {
 		catch(DataIntegrityViolationException e) {
 			throw new EntityInUseException(String.format("Store with id %d is being used", id));
 		}
+	}
+	
+	public SupplementStore findOrFail(Long id) {
+		
+		return supplementRepository.findById(id)
+				.orElseThrow(() -> new SupStoreNotFoundException(id));
 	}
 }

@@ -40,6 +40,7 @@ public class Customer {
 	@Column(nullable = false)
 	private LocalDateTime registerDate;
 	
+	//@JsonIgnore
 	@ManyToOne
 	@JoinColumn(nullable = false)
 	private SupplementStore supStore;

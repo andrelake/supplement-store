@@ -18,13 +18,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.andrelake.supplementstore.domain.exceptions.EntityInUseException;
 import com.andrelake.supplementstore.domain.exceptions.EntityNotFoundException;
 import com.andrelake.supplementstore.domain.model.Payment;
+import com.andrelake.supplementstore.domain.model.SupplementStore;
 import com.andrelake.supplementstore.domain.repository.PaymentRepository;
+import com.andrelake.supplementstore.domain.repository.SupplementStoreRepository;
 import com.andrelake.supplementstore.domain.services.PaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,6 +38,9 @@ public class PaymentController {
 	
 	@Autowired
 	private PaymentService paymentService;
+	
+	@Autowired
+	private SupplementStoreRepository supRepository;
 	
 	@GetMapping
 	public List<Payment> findAll(){
@@ -56,12 +60,14 @@ public class PaymentController {
 	}
 	
 	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<Payment> add(@RequestBody Payment payment) {
 		
+		Optional<SupplementStore> sup = supRepository.findById(1L);
+		
+		payment.setSupStore(sup.get());
 		payment = paymentService.save(payment);
 		
-		return ResponseEntity.ok(payment);
+		return ResponseEntity.status(HttpStatus.CREATED).body(payment);
 	}
 	
 	@PutMapping("/{id}")

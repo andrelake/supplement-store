@@ -39,6 +39,7 @@ public class SupplementStore {
 	@OneToMany(mappedBy = "supStore")
 	private List<Payment> payments = new ArrayList<>();
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "supStore")
 	private List<Customer> customers = new ArrayList<>(); 
 }
