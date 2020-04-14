@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.andrelake.supplementstore.domain.exceptions.EntityNotFoundException;
-import com.andrelake.supplementstore.domain.exceptions.SupStoreNotFoundException;
+import com.andrelake.supplementstore.domain.exceptions.GenericException;
 import com.andrelake.supplementstore.domain.model.Customer;
 import com.andrelake.supplementstore.domain.repository.CustomerRepository;
 import com.andrelake.supplementstore.domain.services.CustomerService;
@@ -59,7 +59,7 @@ public class CustomerController {
 			return customerService.save(customer);
 		}
 		catch(EntityNotFoundException e) {
-			throw new SupStoreNotFoundException(e.getMessage());
+			throw new GenericException(e.getMessage(), e);
 		}
 	}
 	

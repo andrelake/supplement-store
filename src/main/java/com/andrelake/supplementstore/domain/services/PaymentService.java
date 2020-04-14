@@ -5,8 +5,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
-import com.andrelake.supplementstore.domain.exceptions.EntityInUseException;
-import com.andrelake.supplementstore.domain.exceptions.EntityNotFoundException;
+import com.andrelake.supplementstore.domain.exceptions.PaymentInUseException;
+import com.andrelake.supplementstore.domain.exceptions.PaymentNotFoundException;
 import com.andrelake.supplementstore.domain.model.Payment;
 import com.andrelake.supplementstore.domain.repository.PaymentRepository;
 
@@ -27,10 +27,16 @@ public class PaymentService {
 			paymentRepository.deleteById(id);
 		}
 		catch(EmptyResultDataAccessException e) {
-			throw new EntityNotFoundException(String.format("Cannot find payment with id %d", id));
+			throw new PaymentNotFoundException(id);
 		}
 		catch(DataIntegrityViolationException e) {
-			throw new EntityInUseException(String.format("Cannot delete because payment with id %d is being used", id));
+			throw new PaymentInUseException(id);
 		}
+	}
+	
+	public Payment findOrFail(Long id) {
+		
+		return paymentRepository.findById(id)
+				.orElseThrow(() -> new PaymentNotFoundException(id));
 	}
 }

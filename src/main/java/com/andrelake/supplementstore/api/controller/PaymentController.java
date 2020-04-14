@@ -18,15 +18,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.andrelake.supplementstore.domain.exceptions.EntityInUseException;
-import com.andrelake.supplementstore.domain.exceptions.EntityNotFoundException;
 import com.andrelake.supplementstore.domain.model.Payment;
 import com.andrelake.supplementstore.domain.model.SupplementStore;
 import com.andrelake.supplementstore.domain.repository.PaymentRepository;
-import com.andrelake.supplementstore.domain.repository.SupplementStoreRepository;
 import com.andrelake.supplementstore.domain.services.PaymentService;
+import com.andrelake.supplementstore.domain.services.SupplementStoreService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -40,7 +39,7 @@ public class PaymentController {
 	private PaymentService paymentService;
 	
 	@Autowired
-	private SupplementStoreRepository supRepository;
+	private SupplementStoreService supService;
 	
 	@GetMapping
 	public List<Payment> findAll(){
@@ -49,40 +48,32 @@ public class PaymentController {
 	}
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<?> findById(@PathVariable Long id) {
+	public Payment findById(@PathVariable Long id) {
 		
-		Optional<Payment> payment = paymentRepository.findById(id);
-		
-		if(payment.isPresent()) {
-			return ResponseEntity.ok(payment);
-		}
-		return ResponseEntity.notFound().build();
+		return paymentService.findOrFail(id);
 	}
 	
 	@PostMapping
-	public ResponseEntity<Payment> add(@RequestBody Payment payment) {
+	@ResponseStatus(HttpStatus.CREATED)
+	public Payment add(@RequestBody Payment payment) {
 		
-		Optional<SupplementStore> sup = supRepository.findById(1L);
+		SupplementStore sup = supService.findOrFail(1L);
 		
-		payment.setSupStore(sup.get());
-		payment = paymentService.save(payment);
+		payment.setSupStore(sup);
 		
-		return ResponseEntity.status(HttpStatus.CREATED).body(payment);
+		return paymentService.save(payment);
 	}
 	
 	@PutMapping("/{id}")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Payment payment) {
 		
-		Optional<Payment> actualPayment = paymentRepository.findById(id);
+		Payment actualPayment = paymentService.findOrFail(id);
 		
-		if(actualPayment.isPresent()) {
-			BeanUtils.copyProperties(payment, actualPayment.get(), "id");
+		BeanUtils.copyProperties(payment, actualPayment, "id", "supStore");
 			
-			Payment savedPayment = paymentService.save(actualPayment.get());
+		Payment savedPayment = paymentService.save(actualPayment);
 			
-			return ResponseEntity.ok(savedPayment);
-		}
-		return ResponseEntity.notFound().build();
+		return ResponseEntity.ok(savedPayment);
 	}
 	
 	@PatchMapping("/{id}")
@@ -118,17 +109,9 @@ public class PaymentController {
 	}
 	
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Payment> delete(@PathVariable Long id) {
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable Long id) {
 		
-		try {
-			paymentService.remove(id);
-			return ResponseEntity.noContent().build();
-		}
-		catch(EntityNotFoundException e) {
-			return ResponseEntity.notFound().build();
-		}
-		catch(EntityInUseException e) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).build();
-		}
+		paymentService.remove(id);
 	}
 }
